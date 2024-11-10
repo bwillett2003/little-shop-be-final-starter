@@ -22,4 +22,16 @@ class ErrorSerializer
       ]
     }
   end
+
+  def self.format_error(exception, status = "404")
+    {
+      errors: [
+        {
+          status: status,
+          title: "Not Found",
+          detail: exception.message
+        }
+      ]
+    }
+  end
 end

@@ -18,6 +18,8 @@ class Coupon < ApplicationRecord
   private
 
   def active_coupon_limit
+    return if merchant.nil?
+
     if merchant.coupons.where(active: true).count >= 5
       errors.add(:base, "This merchant already has 5 active coupons")
     end
