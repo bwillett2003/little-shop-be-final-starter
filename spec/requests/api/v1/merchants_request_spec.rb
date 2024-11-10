@@ -96,9 +96,11 @@ describe "Merchant endpoints", :type => :request do
       json = JSON.parse(response.body, symbolize_names: true)
 
       expect(response).to have_http_status(:not_found)
-      expect(json[:message]).to eq("Your query could not be completed")
+
       expect(json[:errors]).to be_a Array
-      expect(json[:errors].first).to eq("Couldn't find Merchant with 'id'=100")
+      expect(json[:errors][0][:status]).to eq("422")
+      expect(json[:errors][0][:title]).to eq("Unprocessable Entity")
+      expect(json[:errors][0][:detail]).to eq("Couldn't find Merchant with 'id'=100")
     end
   end
 
@@ -125,7 +127,11 @@ describe "Merchant endpoints", :type => :request do
       json = JSON.parse(response.body, symbolize_names: true)
 
       expect(response).to have_http_status(:unprocessable_entity)
-      expect(json[:errors].first).to eq("Validation failed: Name can't be blank")
+      
+      expect(json[:errors]).to be_a Array
+      expect(json[:errors][0][:status]).to eq("422")
+      expect(json[:errors][0][:title]).to eq("Unprocessable Entity")
+      expect(json[:errors][0][:detail]).to eq("Validation failed: Name can't be blank")
     end
 
     it "should ignore unnecessary fields" do
@@ -169,7 +175,11 @@ describe "Merchant endpoints", :type => :request do
       json = JSON.parse(response.body, symbolize_names: true)
 
       expect(response).to have_http_status(:not_found)
-      expect(json[:errors].first).to eq("Couldn't find Merchant with 'id'=235")
+
+      expect(json[:errors]).to be_a Array
+      expect(json[:errors][0][:status]).to eq("422")
+      expect(json[:errors][0][:title]).to eq("Unprocessable Entity")
+      expect(json[:errors][0][:detail]).to eq("Couldn't find Merchant with 'id'=235")
     end
   end
 
@@ -187,7 +197,11 @@ describe "Merchant endpoints", :type => :request do
       delete "/api/v1/merchants/678"
       json = JSON.parse(response.body, symbolize_names: true)
       expect(response).to have_http_status(:not_found)
-      expect(json[:errors].first).to eq("Couldn't find Merchant with 'id'=678")
+
+      expect(json[:errors]).to be_a Array
+      expect(json[:errors][0][:status]).to eq("422")
+      expect(json[:errors][0][:title]).to eq("Unprocessable Entity")
+      expect(json[:errors][0][:detail]).to eq("Couldn't find Merchant with 'id'=678")
     end
 
     it "should successfully delete merchant and use cascading deletes if merchant has child records" do

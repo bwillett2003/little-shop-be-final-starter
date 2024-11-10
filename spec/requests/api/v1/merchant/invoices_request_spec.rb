@@ -54,8 +54,10 @@ RSpec.describe "Merchant invoices endpoints" do
     json = JSON.parse(response.body, symbolize_names: true)
 
     expect(response).to have_http_status(:not_found)
-    expect(json[:message]).to eq("Your query could not be completed")
+
     expect(json[:errors]).to be_a Array
-    expect(json[:errors].first).to eq("Couldn't find Merchant with 'id'=100000")
+    expect(json[:errors][0][:status]).to eq("422")
+    expect(json[:errors][0][:title]).to eq("Unprocessable Entity")
+    expect(json[:errors][0][:detail]).to eq("Couldn't find Merchant with 'id'=100000")
   end
 end

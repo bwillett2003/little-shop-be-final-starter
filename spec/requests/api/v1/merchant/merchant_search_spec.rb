@@ -28,14 +28,22 @@ RSpec.describe "Search Endpoints" do
       get "/api/v1/merchants/find"
       expect(response).to_not be_successful
       json = JSON.parse(response.body, symbolize_names: true)
-      expect(json[:errors][0]).to eq("invalid search params")
+      
+      expect(json[:errors]).to be_a Array
+      expect(json[:errors][0][:status]).to eq("400")
+      expect(json[:errors][0][:title]).to eq("Bad Request")
+      expect(json[:errors][0][:detail]).to eq("Invalid search parameters")
     end
 
     it "returns an error if name is blank" do
       get "/api/v1/merchants/find?name="
       expect(response).to_not be_successful
       json = JSON.parse(response.body, symbolize_names: true)
-      expect(json[:errors][0]).to eq("invalid search params")
+
+      expect(json[:errors]).to be_a Array
+      expect(json[:errors][0][:status]).to eq("400")
+      expect(json[:errors][0][:title]).to eq("Bad Request")
+      expect(json[:errors][0][:detail]).to eq("Invalid search parameters")
     end
   end
 
@@ -53,7 +61,11 @@ RSpec.describe "Search Endpoints" do
       get "/api/v1/merchants/find_all?name="
       expect(response).to_not be_successful
       json = JSON.parse(response.body, symbolize_names: true)
-      expect(json[:errors][0]).to eq("invalid search params")
+
+      expect(json[:errors]).to be_a Array
+      expect(json[:errors][0][:status]).to eq("400")
+      expect(json[:errors][0][:title]).to eq("Bad Request")
+      expect(json[:errors][0][:detail]).to eq("Invalid search parameters")
     end
   end
 end
