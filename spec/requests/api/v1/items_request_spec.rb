@@ -157,7 +157,7 @@ describe "Item endpoints", :type => :request do
   
       patch "/api/v1/items/#{item.id}", params: body, as: :json
       json = JSON.parse(response.body, symbolize_names: true)
-  
+
       expect(response).to have_http_status(:not_found)
       expect(json[:errors]).to be_an(Array)
       expect(json[:errors][0][:status]).to eq("422")

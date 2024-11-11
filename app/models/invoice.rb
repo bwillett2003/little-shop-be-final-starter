@@ -14,12 +14,14 @@ class Invoice < ApplicationRecord
   def total_after_coupon
     total = calculate_total
     return total unless coupon
-  
+
+    applicable_total = invoice_items.select { |item| coupon.applicable_to_item?(item) }.sum { |item| item.quantity * item.unit_price }
+    
     case coupon.discount_type
     when "dollar"
-      [total - coupon.discount_value, 0].max
+      [total - coupon.discount_value, total - applicable_total].max
     when "percent"
-      [total * (1 - coupon.discount_value / 100.0), 0].max
+      [total * (1 - coupon.discount_value / 100.0), total - applicable_total].max
     else
       total
     end

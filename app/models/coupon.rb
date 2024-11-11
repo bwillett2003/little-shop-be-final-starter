@@ -13,6 +13,10 @@ class Coupon < ApplicationRecord
 
   validate :active_coupon_limit, on: :create, if: :active?
 
+  def applicable_to_item?(invoice_item)
+    invoice_item.item.merchant_id == merchant_id
+  end
+
   def activate
     if can_be_activated?
       update(active: true)
