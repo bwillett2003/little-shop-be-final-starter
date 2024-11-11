@@ -11,7 +11,7 @@ class Coupon < ApplicationRecord
   validates :discount_value, numericality: { greater_than: 0, message: "must be greater than 0 for dollar discounts" },
                              if: -> { discount_type == "dollar" }
 
-  validate :active_coupon_limit, on: :create
+  validate :active_coupon_limit, on: :create, if: :active?
 
   def activate
     if can_be_activated?

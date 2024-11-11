@@ -4,7 +4,7 @@ class Api::V1::CouponsController < ApplicationController
 
   def index
     merchant = Merchant.find(params[:merchant_id])
-    coupons = merchant.coupons
+    coupons = filter_coupons(merchant.coupons)
     render json: CouponSerializer.new(coupons)
   end
 
@@ -46,6 +46,12 @@ class Api::V1::CouponsController < ApplicationController
 
   def coupon_params
     params.require(:coupon).permit(:name, :code, :discount_value, :discount_type, :active)
+  end
+
+  def filter_coupons(coupons)
+    return coupons.where(active: true) if params[:active] == 'true'
+    return coupons.where(active: false) if params[:active] == 'false'
+    coupons
   end
 
   def unprocessable_entity(exception)
