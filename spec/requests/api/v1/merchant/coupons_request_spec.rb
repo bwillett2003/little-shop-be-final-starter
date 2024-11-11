@@ -118,4 +118,36 @@ RSpec.describe "Coupon", type: :request do
       end
     end
   end
+
+  describe "PATCH /api/v1/merchants/:merchant_id/coupons/:id/deactivate" do
+    let!(:coupon) { create(:coupon, merchant: merchant, active: true) }
+    
+    context "when there are no pending invoices" do
+      it "can deactivate a coupon" do
+        patch deactivate_api_v1_merchant_coupon_path(merchant_id: merchant.id, id: coupon.id)
+
+        expect(response).to have_http_status(:ok)
+        json = JSON.parse(response.body, symbolize_names: true)
+        data = json[:data]
+    
+        expect(data[:id]).to eq(coupon.id.to_s)
+        expect(data[:attributes][:active]).to eq(false)
+      end
+    end
+
+    context "when there are pending invoices" do
+      before do
+        create(:invoice, coupon: coupon, status: 'packaged')
+      end
+
+      it "does not allow the coupon to be deactivated" do
+        patch deactivate_api_v1_merchant_coupon_path(merchant_id: merchant.id, id: coupon.id)
+
+        expect(response).to have_http_status(:unprocessable_entity)
+        json = JSON.parse(response.body, symbolize_names: true)
+
+        expect(json[:errors].first[:detail]).to eq("Coupon cannot be deactivated while there are pending invoices")
+      end
+    end
+  end
 end
