@@ -10,7 +10,7 @@ class Api::V1::MerchantsController < ApplicationController
     end
 
     include_count = params[:count].present? && params[:count] == "true"
-    render json: MerchantSerializer.new(merchants, { params: { count: include_count }})
+    render json: MerchantSerializer.new(merchants, { params: { include_count: include_count }})
   end
 
   def show
