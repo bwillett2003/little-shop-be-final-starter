@@ -14,10 +14,11 @@ class Invoice < ApplicationRecord
   def total_after_coupon
     total = calculate_total
     return total unless coupon
-
-    if coupon.discount_type == "dollar"
+  
+    case coupon.discount_type
+    when "dollar"
       [total - coupon.discount_value, 0].max
-    elsif coupon.discount_type == "percent"
+    when "percent"
       [total * (1 - coupon.discount_value / 100.0), 0].max
     else
       total

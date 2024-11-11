@@ -73,6 +73,17 @@ RSpec.describe "Merchant invoices endpoints" do
     expect(json[:data].map { |invoice| invoice[:attributes][:merchant_id] }.uniq).to eq([@merchant1.id])
   end
 
+  it "returns the original total when no coupon is applied" do
+    merchant = Merchant.create!(name: "Merchant Test")
+    customer = Customer.create!(first_name: "Test", last_name: "Customer")
+    invoice = Invoice.create!(customer: customer, merchant: merchant, status: "packaged")
+  
+    item1 = Item.create!(name: "Item 1", description: "Test Item", unit_price: 100, merchant: merchant)
+    InvoiceItem.create!(invoice: invoice, item: item1, quantity: 2, unit_price: 100)
+  
+    expect(invoice.total_after_coupon).to eq(invoice.calculate_total)
+  end
+
   it "calculates the total for an invoice based on quantity and unit_price of its items" do
     merchant = Merchant.create!(name: "Merchant Test")
     customer = Customer.create!(first_name: "Test", last_name: "Customer")
@@ -113,4 +124,21 @@ RSpec.describe "Merchant invoices endpoints" do
 
     expect(invoice.total_after_coupon).to eq(180)
   end
+
+  it "returns the original total when discount_type is unrecognized" do
+    merchant = Merchant.create!(name: "Merchant Test")
+    customer = Customer.create!(first_name: "Test", last_name: "Customer")
+    
+    coupon = Coupon.new(merchant: merchant, name: "Unknown Type", code: "UNKNOWN", discount_value: 20)
+    coupon[:discount_type] = nil
+    coupon.save!(validate: false)
+    
+    invoice = Invoice.create!(customer: customer, merchant: merchant, status: "packaged", coupon: coupon)
+  
+    item1 = Item.create!(name: "Item 1", description: "Test Item", unit_price: 100, merchant: merchant)
+    InvoiceItem.create!(invoice: invoice, item: item1, quantity: 2, unit_price: 100)
+  
+    expect(invoice.total_after_coupon).to eq(invoice.calculate_total)
+  end
+  
 end
