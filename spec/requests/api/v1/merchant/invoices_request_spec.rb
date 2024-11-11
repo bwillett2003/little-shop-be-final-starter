@@ -60,4 +60,16 @@ RSpec.describe "Merchant invoices endpoints" do
     expect(json[:errors][0][:title]).to eq("Unprocessable Entity")
     expect(json[:errors][0][:detail]).to eq("Couldn't find Merchant with 'id'=100000")
   end
+
+  it "returns all invoices for a given merchant without filtering by status" do
+    get "/api/v1/merchants/#{@merchant1.id}/invoices"
+  
+    json = JSON.parse(response.body, symbolize_names: true)
+  
+    expect(response).to be_successful
+    
+    expect(json[:data].count).to eq(4)
+  
+    expect(json[:data].map { |invoice| invoice[:attributes][:merchant_id] }.uniq).to eq([@merchant1.id])
+  end
 end

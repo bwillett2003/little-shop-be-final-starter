@@ -148,6 +148,21 @@ describe "Item endpoints", :type => :request do
       expect(json[:errors][0][:title]).to eq("Unprocessable Entity")
       expect(json[:errors][0][:detail]).to eq("Couldn't find Item with 'id'=235")
     end
+
+    it "returns a 404 error when updating an item with an invalid merchant_id" do
+      item = create(:item, merchant: merchant)
+      body = {
+        merchant_id: 99999 # Assumes this ID does not exist
+      }
+  
+      patch "/api/v1/items/#{item.id}", params: body, as: :json
+      json = JSON.parse(response.body, symbolize_names: true)
+  
+      expect(response).to have_http_status(:not_found)
+      expect(json[:errors]).to be_an(Array)
+      expect(json[:errors][0][:status]).to eq("422")
+      expect(json[:errors][0][:title]).to eq("Unprocessable Entity")
+    end
   end
 
   describe "Delete Item" do

@@ -119,6 +119,46 @@ RSpec.describe "Coupon", type: :request do
     end
   end
 
+  describe "PATCH /api/v1/merchants/:merchant_id/coupons/:id/activate" do
+    context "when there are fewer than 5 active coupons" do
+      it "activates the coupon when there are fewer than 5 active coupons" do
+        merchant.coupons.destroy_all
+
+        4.times do 
+          coupon = build(:coupon, merchant: merchant, active: true)
+          coupon.save(validate: false)
+        end
+      
+        coupon = create(:coupon, merchant: merchant, active: false)
+      
+        patch activate_api_v1_merchant_coupon_path(merchant_id: merchant.id, id: coupon.id)
+      
+        expect(response).to have_http_status(:ok)
+        json = JSON.parse(response.body, symbolize_names: true)
+        expect(json[:data][:attributes][:active]).to be true
+      end
+    end
+
+    context "when there are already 5 active coupons" do
+      it "does not activate the coupon and returns an error" do
+        
+        5.times do
+          coupon = build(:coupon, merchant: merchant, active: true)
+          coupon.save(validate: false)
+        end
+
+        coupon = create(:coupon, merchant: merchant, active: false)
+
+        patch activate_api_v1_merchant_coupon_path(merchant_id: merchant.id, id: coupon.id)
+
+        expect(response).to have_http_status(:unprocessable_entity)
+        json = JSON.parse(response.body, symbolize_names: true)
+
+        expect(json[:errors][0][:detail]).to eq("This merchant already has 5 active coupons")
+      end
+    end
+  end
+
   describe "PATCH /api/v1/merchants/:merchant_id/coupons/:id/deactivate" do
     let!(:coupon) { create(:coupon, merchant: merchant, active: true) }
     

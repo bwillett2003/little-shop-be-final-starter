@@ -21,21 +21,21 @@ class Api::V1::CouponsController < ApplicationController
     coupon.save!
     render json: CouponSerializer.new(coupon), status: :created
   end
-
-  def deactivate
+  
+  def activate
     coupon = Coupon.find(params[:id])
-
-    if coupon.deactivate
+  
+    if coupon.activate
       render json: CouponSerializer.new(coupon), status: :ok
     else
       render json: ErrorSerializer.format_errors(coupon.errors.full_messages), status: :unprocessable_entity
     end
   end
 
-  def activate
+  def deactivate
     coupon = Coupon.find(params[:id])
 
-    if coupon.activate
+    if coupon.deactivate
       render json: CouponSerializer.new(coupon), status: :ok
     else
       render json: ErrorSerializer.format_errors(coupon.errors.full_messages), status: :unprocessable_entity
