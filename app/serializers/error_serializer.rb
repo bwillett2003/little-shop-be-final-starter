@@ -1,15 +1,37 @@
 class ErrorSerializer
-  def self.format_errors(messages)
+  def self.format_errors(messages, status: "422")
     {
-      message: 'Your query could not be completed',
-      errors: messages
+      errors: messages.map do |message|
+        {
+          status: status,
+          title: "Unprocessable Entity",
+          detail: message
+        }
+      end
     }
   end
 
   def self.format_invalid_search_response
-    { 
-      message: "your query could not be completed", 
-      errors: ["invalid search params"] 
+    {
+      errors: [
+        {
+          status: "400",
+          title: "Bad Request",
+          detail: "Invalid search parameters"
+        }
+      ]
+    }
+  end
+
+  def self.format_error(exception, status = "404")
+    {
+      errors: [
+        {
+          status: status,
+          title: "Not Found",
+          detail: exception.message
+        }
+      ]
     }
   end
 end
