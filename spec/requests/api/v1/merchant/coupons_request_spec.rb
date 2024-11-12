@@ -131,7 +131,7 @@ RSpec.describe "Coupon", type: :request do
       
         coupon = create(:coupon, merchant: merchant, active: false)
       
-        patch activate_api_v1_merchant_coupon_path(merchant_id: merchant.id, id: coupon.id)
+        patch api_v1_merchant_coupon_path(merchant_id: merchant.id, id: coupon.id), params: { coupon: { active: true } }
       
         expect(response).to have_http_status(:ok)
         json = JSON.parse(response.body, symbolize_names: true)
@@ -149,7 +149,7 @@ RSpec.describe "Coupon", type: :request do
 
         coupon = create(:coupon, merchant: merchant, active: false)
 
-        patch activate_api_v1_merchant_coupon_path(merchant_id: merchant.id, id: coupon.id)
+        patch api_v1_merchant_coupon_path(merchant_id: merchant.id, id: coupon.id), params: { coupon: { active: true } }
 
         expect(response).to have_http_status(:unprocessable_entity)
         json = JSON.parse(response.body, symbolize_names: true)
@@ -164,12 +164,12 @@ RSpec.describe "Coupon", type: :request do
     
     context "when there are no pending invoices" do
       it "can deactivate a coupon" do
-        patch deactivate_api_v1_merchant_coupon_path(merchant_id: merchant.id, id: coupon.id)
+        patch api_v1_merchant_coupon_path(merchant_id: merchant.id, id: coupon.id), params: { coupon: { active: false } }
 
         expect(response).to have_http_status(:ok)
         json = JSON.parse(response.body, symbolize_names: true)
         data = json[:data]
-    
+
         expect(data[:id]).to eq(coupon.id.to_s)
         expect(data[:attributes][:active]).to eq(false)
       end
@@ -181,7 +181,7 @@ RSpec.describe "Coupon", type: :request do
       end
 
       it "does not allow the coupon to be deactivated" do
-        patch deactivate_api_v1_merchant_coupon_path(merchant_id: merchant.id, id: coupon.id)
+        patch api_v1_merchant_coupon_path(merchant_id: merchant.id, id: coupon.id), params: { coupon: { active: false } }
 
         expect(response).to have_http_status(:unprocessable_entity)
         json = JSON.parse(response.body, symbolize_names: true)

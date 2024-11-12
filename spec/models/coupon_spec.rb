@@ -14,12 +14,6 @@ RSpec.describe Coupon, type: :model do
       expect(coupon.errors[:discount_value]).to include("must be greater than 0 for dollar discounts")
     end
 
-    it "validates that discount_value is a number greater than 0" do
-      coupon = build(:coupon, merchant: merchant, discount_value: -1, discount_type: "dollar")
-      expect(coupon).not_to be_valid
-      expect(coupon.errors[:discount_value]).to include("must be greater than 0 for dollar discounts")
-    end
-
     context "when validating discount value based on discount type" do
       it "validates discount_value is between 1 and 100 if discount_type is percent" do
         coupon = build(:coupon, merchant: merchant, discount_type: "percent", discount_value: 101)
@@ -50,74 +44,40 @@ RSpec.describe Coupon, type: :model do
     it { should have_many(:invoices) }
   end
 
-  describe "methods" do
-    describe "#can_be_activated?" do
-      it "returns true if there are fewer than 5 active coupons" do
-        create_list(:coupon, 4, merchant: merchant, active: true)
-        coupon = build(:coupon, merchant: merchant)
-        
-        expect(coupon.can_be_activated?).to be true
-      end
-
-      it "returns false if there are already 5 active coupons" do
-        create_list(:coupon, 5, merchant: merchant, active: true)
-        coupon = build(:coupon, merchant: merchant)
-        
-        expect(coupon.can_be_activated?).to be false
-      end
-    end
-
-    describe "#activate" do
-      it "activates the coupon if it can be activated" do
+  describe "activation and deactivation" do
+    context "when updating the active status" do
+      it "activates the coupon if there are fewer than 5 active coupons" do
         create_list(:coupon, 4, merchant: merchant, active: true)
         coupon = create(:coupon, merchant: merchant, active: false)
         
-        expect(coupon.activate).to be true
+        coupon.update(active: true)
         expect(coupon.reload.active).to be true
       end
 
-      it "does not activate the coupon if the merchant already has 5 active coupons" do
+      it "does not activate the coupon if there are already 5 active coupons" do
         create_list(:coupon, 5, merchant: merchant, active: true)
-      
-        coupon = Coupon.new(name: "Extra Coupon", code: "EXTRA123", discount_value: 10, discount_type: "dollar", active: false, merchant: merchant)
-        coupon.save(validate: false)
-    
-        expect(coupon.activate).to be false
+        coupon = create(:coupon, merchant: merchant, active: false)
+        
+        coupon.update(active: true)
         expect(coupon.errors[:base]).to include("This merchant already has 5 active coupons")
-      end
-    end
-
-    describe "#can_be_deactivated?" do
-      it "returns true if there are no pending invoices with the coupon" do
-        coupon = create(:coupon, merchant: merchant)
-        create(:invoice, coupon: coupon, status: "shipped")
-
-        expect(coupon.can_be_deactivated?).to be true
+        expect(coupon.reload.active).to be false
       end
 
-      it "returns false if there are pending invoices with the coupon" do
-        coupon = create(:coupon, merchant: merchant)
-        create(:invoice, coupon: coupon, status: "packaged")
-
-        expect(coupon.can_be_deactivated?).to be false
-      end
-    end
-
-    describe "#deactivate" do
-      it "deactivates the coupon if it can be deactivated" do
+      it "deactivates the coupon if there are no pending invoices" do
         coupon = create(:coupon, merchant: merchant, active: true)
         create(:invoice, coupon: coupon, status: "shipped")
-
-        expect(coupon.deactivate).to be true
+        
+        coupon.update(active: false)
         expect(coupon.reload.active).to be false
       end
 
       it "does not deactivate the coupon if there are pending invoices" do
         coupon = create(:coupon, merchant: merchant, active: true)
         create(:invoice, coupon: coupon, status: "packaged")
-
-        expect(coupon.deactivate).to be false
+        
+        coupon.update(active: false)
         expect(coupon.errors[:base]).to include("Coupon cannot be deactivated while there are pending invoices")
+        expect(coupon.reload.active).to be true
       end
     end
   end

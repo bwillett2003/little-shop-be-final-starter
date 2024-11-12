@@ -11,47 +11,35 @@ class Coupon < ApplicationRecord
   validates :discount_value, numericality: { greater_than: 0, message: "must be greater than 0 for dollar discounts" },
                              if: -> { discount_type == "dollar" }
 
-  validate :active_coupon_limit, on: :create, if: :active?
+  validate :active_coupon_limit, if: -> { new_record? && active? || activating? }
+  validate :can_be_deactivated, if: :deactivating?
 
   def applicable_to_item?(invoice_item)
     invoice_item.item.merchant_id == merchant_id
   end
 
-  def activate
-    if can_be_activated?
-      update(active: true)
-      true
-    else
-      errors.add(:base, "This merchant already has 5 active coupons")
-      false
-    end
-  end
-
-  def deactivate
-    if can_be_deactivated?
-      update(active: false)
-      true
-    else
-      errors.add(:base, "Coupon cannot be deactivated while there are pending invoices")
-      false
-    end
-  end
-
-  def can_be_activated?
-    merchant.coupons.where(active: true).count < 5
-  end
-
-  def can_be_deactivated?
-    invoices.where(status: 'packaged').empty?
-  end
-
   private
 
   def active_coupon_limit
-    return if merchant.nil?
-
     if merchant.coupons.where(active: true).count >= 5
       errors.add(:base, "This merchant already has 5 active coupons")
     end
+  end
+
+  def can_be_deactivated
+    if invoices.where(status: 'packaged').exists?
+      errors.add(:base, "Coupon cannot be deactivated while there are pending invoices")
+      false
+    else
+      true
+    end
+  end
+
+  def activating?
+    will_save_change_to_active? && active
+  end
+
+  def deactivating?
+    will_save_change_to_active? && !active
   end
 end

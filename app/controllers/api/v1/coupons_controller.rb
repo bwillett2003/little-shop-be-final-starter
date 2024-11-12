@@ -22,20 +22,16 @@ class Api::V1::CouponsController < ApplicationController
     render json: CouponSerializer.new(coupon), status: :created
   end
   
-  def activate
+  def update
     coupon = Coupon.find(params[:id])
   
-    if coupon.activate
-      render json: CouponSerializer.new(coupon), status: :ok
-    else
-      render json: ErrorSerializer.format_errors(coupon.errors.full_messages), status: :unprocessable_entity
+    return render json: { error: "Coupon parameter is required" }, status: :bad_request unless params[:coupon]
+  
+    if params[:coupon].key?(:active)
+      coupon.active = params[:coupon][:active]
     end
-  end
-
-  def deactivate
-    coupon = Coupon.find(params[:id])
-
-    if coupon.deactivate
+  
+    if coupon.save
       render json: CouponSerializer.new(coupon), status: :ok
     else
       render json: ErrorSerializer.format_errors(coupon.errors.full_messages), status: :unprocessable_entity
