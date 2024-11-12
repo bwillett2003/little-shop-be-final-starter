@@ -152,7 +152,7 @@ describe "Item endpoints", :type => :request do
     it "returns a 404 error when updating an item with an invalid merchant_id" do
       item = create(:item, merchant: merchant)
       body = {
-        merchant_id: 99999 # Assumes this ID does not exist
+        merchant_id: 99999
       }
   
       patch "/api/v1/items/#{item.id}", params: body, as: :json
